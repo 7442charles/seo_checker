@@ -3,8 +3,7 @@ import path from "path";
 import * as cheerio from "cheerio";
 import { fileURLToPath } from "url";
 
-// Patch fetch to work in CommonJS using dynamic import of node-fetch
-const fetch = async (...args) => (await import('node-fetch')).default(...args);
+const fetch = async (...args) => (await import("node-fetch")).default(...args);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,9 +25,25 @@ async function loadHTML(input) {
   }
 }
 
-function check($, selector, description, conditionFn) {
+const passedChecks = [];
+const failedChecks = [];
+const passFailResults = []; // for summary stats
+
+function check($, selector, description, conditionFn, skip = false) {
+  if (skip) {
+    console.log(`🔶 Skipped: ${description}`);
+    return;
+  }
   const el = $(selector).first();
   const pass = conditionFn(el, $);
+
+  passFailResults.push(pass);
+  if (pass) {
+    passedChecks.push(description);
+  } else {
+    failedChecks.push(description);
+  }
+
   console.log(`${pass ? "✅" : "❌"} ${description}`);
 }
 
@@ -53,73 +68,71 @@ function check($, selector, description, conditionFn) {
 
   // 2. Title and Meta
   console.log("\n2. Title and Meta:");
-  const title = $("title").text();
-  console.log(`${title ? "✅" : "❌"} Has <title> tag (${title})`);
-  console.log(`${title.length <= 60 ? "✅" : "❌"} Title length: ${title.length}`);
-  check($, 'meta[name="description"]', "Meta description under 160 chars", el =>
-    el.attr("content")?.length <= 160
-  );
+  check($, "title", "Has <title> tag", el => !!el.text().trim());
+  check($, "title", "Title length is optimal", el => {
+    const len = el.text().trim().length;
+    return len >= 50 && len <= 60;
+  });
+  check($, 'meta[name="description"]', "Meta description is between 120 and 158 characters", el => {
+    const descLength = el.attr("content")?.length || 0;
+    return descLength >= 120 && descLength <= 158;
+  });
 
-  // 3. Clean and Descriptive URLs (skip for local files)
+  // 3. Clean and Descriptive URLs
   if (input.startsWith("http")) {
     console.log("\n3. Clean and Descriptive URLs:");
-    const clean = /^[^?]+\/[a-z0-9\-]+\/?$/.test(new URL(input).pathname);
-    console.log(`${clean ? "✅" : "❌"} URL looks clean and human-readable`);
+    const clean = /^\/[a-z0-9\-\/]+(\.html?)?$/.test(new URL(input).pathname);
+    check($, "body", "URL looks clean and human-readable", () => clean);
   }
 
   // 4. Open Graph and Twitter Card Tags
   console.log("\n4. Open Graph and Twitter Card Tags:");
   ["og:title", "og:description", "og:image"].forEach(name => {
-    check($, `meta[property="${name}"]`, `Has ${name}`, el => el.attr("content"));
+    check($, `meta[property="${name}"]`, `Has ${name}`, el => !!el.attr("content"));
   });
-  check($, 'meta[name="twitter:card"]', "Has twitter:card", el => el.attr("content"));
+  check($, 'meta[name="twitter:card"]', "Has twitter:card", el => !!el.attr("content"));
 
   // 5. Canonical Tag
   console.log("\n5. Canonical Tag:");
-  check($, 'link[rel="canonical"]', "Has canonical tag", el => el.attr("href"));
+  check($, 'link[rel="canonical"]', "Has canonical tag", el => !!el.attr("href"));
 
   // 6. Mobile-Friendly Design
   console.log("\n6. Mobile-Friendly Design:");
-  check($, 'meta[name="viewport"]', "Has viewport meta tag", el => el.attr("content")?.includes("width"));
-  check($, "style,link[rel='stylesheet']", "Responsive CSS present", () => true); // Basic proxy check
+  check($, 'meta[name="viewport"]', "Has viewport meta tag", el => {
+    return el.attr("content")?.includes("width") || false;
+  });
+  check($, "style,link[rel='stylesheet']", "Responsive CSS present", () => true); // Always true for now
 
   // 7. Fast Page Load Time
   console.log("\n7. Fast Page Load Time:");
-    check($, "script[src]", "JS uses async or defer", ($el, $) => {
-    return $("script[src]").toArray().every(script => {
-        const attr = $(script).attr();
-        return attr.async !== undefined || attr.defer !== undefined;
+  check($, "script[src]", "JS uses async or defer", ($el, $) => {
+    const scripts = $("script[src]").toArray();
+    return scripts.every(script => {
+      const attr = $(script).attr();
+      return attr.async !== undefined || attr.defer !== undefined;
     });
-    });
+  });
 
-    const lazyImages = $("img[loading='lazy']");
-    if (lazyImages.length === 0) {
-    console.log("✅ No images found — skipping lazy loading check");
-    } else {
-    check($, "img[loading='lazy']", "Images use lazy loading", el => lazyImages.length > 0);
-    }
+  const images = $("img");
+  const hasImages = images.length > 0;
+  check($, "img[loading='lazy']", "Images use lazy loading", el => images.length > 0, !hasImages);
 
-    // 8. Structured Data Markup (Schema)
-    console.log("\n8. Structured Data Markup:");
-    check($, 'script[type="application/ld+json"]', "Has JSON-LD structured data", el => el.text().length > 0);
+  // 8. Structured Data Markup
+  console.log("\n8. Structured Data Markup:");
+  check($, 'script[type="application/ld+json"]', "Has JSON-LD structured data", el => el.text().length > 0);
 
-    // 9. Image Optimization
-    console.log("\n9. Image Optimization:");
-    const images = $("img");
-    if (images.length === 0) {
-    console.log("✅ No images found — skipping alt attribute check");
-    } else {
-    check($, "img", "Images have alt attributes", ($el, $) =>
-        images.toArray().every(img => $(img).attr("alt") && $(img).attr("alt").trim().length > 0)
-    );
-    }
+  // 9. Image Optimization
+  console.log("\n9. Image Optimization:");
+  check($, "img", "Images have alt attributes", () => {
+    return images.toArray().every(img => $(img).attr("alt")?.trim().length > 0);
+  }, !hasImages);
 
   // 10. HTTPS Security
   console.log("\n10. HTTPS Security:");
   if (input.startsWith("https://")) {
-    console.log("✅ HTTPS is used");
+    check($, "body", "HTTPS is used", () => true);
   } else if (input.startsWith("http://")) {
-    console.log("❌ Not using HTTPS");
+    check($, "body", "HTTPS is used", () => false);
   } else {
     console.log("🔶 Local file — skip HTTPS check");
   }
@@ -127,17 +140,35 @@ function check($, selector, description, conditionFn) {
   // 11. Internal Linking
   console.log("\n11. Internal Linking:");
   check($, 'a[href]', "Anchor tags present", el => $("a[href]").length > 0);
-  
 
-  // 12. Robots.txt and Sitemap.xml (only for remote)
+  // 12. Robots.txt and Sitemap.xml
   if (input.startsWith("http")) {
     console.log("\n12. Robots.txt and Sitemap.xml:");
     const baseURL = new URL(input).origin;
     const robots = await fetch(`${baseURL}/robots.txt`).then(r => r.status === 200).catch(() => false);
     const sitemap = await fetch(`${baseURL}/sitemap.xml`).then(r => r.status === 200).catch(() => false);
-    console.log(`${robots ? "✅" : "❌"} robots.txt found`);
-    console.log(`${sitemap ? "✅" : "❌"} sitemap.xml found`);
+
+    check($, "body", "robots.txt found", () => robots);
+    check($, "body", "sitemap.xml found", () => sitemap);
   }
 
-  console.log("\n✅ SEO audit complete.\n");
+  // --- Summary Scoring ---
+  const totalChecks = passFailResults.length;
+  const totalPassed = passedChecks.length;
+  const totalFailed = failedChecks.length;
+  const score = Math.round((totalPassed / totalChecks) * 100);
+
+  console.log("\n==============================");
+  console.log(`Total tests : ${totalChecks}`);
+  console.log(`✅ Passed    : ${totalPassed}`);
+  console.log(`❌ Failed    : ${totalFailed}`);
+  console.log(`📊 Final Score: ${score}%`);
+  console.log("==============================");
+
+//   console.log("\n✅ Passed Checks:");
+//   console.log(passedChecks);
+
+//   console.log("\n❌ Failed Checks:");
+//   console.log(failedChecks);
+
 })();
