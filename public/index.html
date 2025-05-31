@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SEO Analyzer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+  <div class="max-w-2xl mx-auto mt-20 p-6 bg-white shadow-xl rounded-lg">
+    <h1 class="text-2xl font-bold mb-4 text-center">Website SEO Analyzer</h1>
+    <form id="seoForm" class="space-y-4">
+      <input type="url" id="url" required placeholder="Enter a URL (https://example.com)"
+        class="w-full p-3 border border-gray-300 rounded-md"/>
+      <button type="submit"
+        class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition">
+        Analyze
+      </button>
+    </form>
+
+    <div id="results" class="mt-6 space-y-4 hidden">
+      <h2 class="text-xl font-semibold">Analysis Report</h2>
+      <div id="report" class="space-y-2 text-sm text-gray-700"></div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('seoForm');
+    const reportContainer = document.getElementById('report');
+    const resultsBox = document.getElementById('results');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const url = document.getElementById('url').value;
+      reportContainer.innerHTML = 'Analyzing...';
+      resultsBox.classList.remove('hidden');
+
+      try {
+        const response = await fetch('/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+
+        const data = await response.json();
+
+        if (data.success && Array.isArray(data.results)) {
+          reportContainer.innerHTML = data.results.map((item) => `
+            <div class="border p-2 rounded">
+              <strong>${item.title}:</strong>
+              <span class="${item.pass ? 'text-green-600' : 'text-red-600'}">
+                ${item.pass ? '✅ Pass' : '❌ Fail'}
+              </span><br/>
+              <span class="text-gray-600">${item.description}</span>
+            </div>
+          `).join('');
+        } else {
+          reportContainer.innerHTML = '<span class="text-red-600">Invalid response from server.</span>';
+        }
+      } catch (error) {
+        reportContainer.innerHTML = 'Error analyzing URL.';
+      }
+    });
+  </script>
+</body>
+</html>
