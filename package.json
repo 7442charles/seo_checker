@@ -1,0 +1,21 @@
+{
+  "name": "seochecker",
+  "version": "1.0.0",
+  "description": "The project is to check if a blog page is optimized for SEO on the code level",
+  "keywords": [
+    "seochecker"
+  ],
+  "license": "ISC",
+  "author": "cking",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node seochecker.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "jsdom": "^26.1.0",
+    "node-fetch": "^3.3.2"
+  }
+}
