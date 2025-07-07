@@ -1,66 +1,535 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SEO Analyzer</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>SEO Pro - Optimize Your Website's Ranking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .loader {
+            border: 4px solid #f3f3f3; /* Light grey */
+            border-top: 4px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Styling for collapsible sections */
+        .collapsible-header {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background-color: #f8fafc; /* Tailwind gray-50 */
+            border-bottom: 1px solid #e2e8f0; /* Tailwind gray-200 */
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .collapsible-header:hover {
+            background-color: #f1f5f9; /* Tailwind gray-100 */
+        }
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+            padding-left: 1rem; /* Indent content */
+            padding-right: 1rem;
+        }
+        .collapsible-content.expanded {
+            max-height: 1000px; /* Arbitrarily large value for expansion */
+            padding-bottom: 1rem;
+        }
+        .collapsible-header svg {
+            transition: transform 0.3s ease-out;
+        }
+        .collapsible-header.expanded svg {
+            transform: rotate(90deg);
+        }
+
+        /* Score visualization */
+        .score-bar-container {
+            background-color: #e2e8f0; /* gray-200 */
+            border-radius: 9999px; /* full rounded */
+            height: 8px;
+            overflow: hidden;
+            width: 100px; /* Fixed width for consistency */
+        }
+        .score-bar {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.5s ease-out;
+        }
+        .bg-score-good { background-color: #22c55e; /* green-500 */ }
+        .bg-score-fair { background-color: #eab308; /* yellow-500 */ }
+        .bg-score-poor { background-color: #ef4444; /* red-500 */ }
+
+        /* Overall Status Badges */
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        .badge-good { background-color: #dcfce7; /* green-100 */ color: #16a34a; /* green-600 */ }
+        .badge-fair { background-color: #fef9c3; /* yellow-100 */ color: #a16207; /* yellow-700 */ }
+        .badge-poor { background-color: #fee2e2; /* red-100 */ color: #dc2626; /* red-600 */ }
+
+        /* Mobile Menu */
+        #mobile-menu {
+            transition: transform 0.3s ease-out;
+            transform: translateX(100%);
+        }
+        #mobile-menu.active {
+            transform: translateX(0);
+        }
+    </style>
 </head>
-<body class="bg-gray-100 font-sans">
-  <div class="max-w-2xl mx-auto mt-20 p-6 bg-white shadow-xl rounded-lg">
-    <h1 class="text-2xl font-bold mb-4 text-center">Website SEO Analyzer</h1>
-    <form id="seoForm" class="space-y-4">
-      <input type="url" id="url" required placeholder="Enter a URL (https://example.com)"
-        class="w-full p-3 border border-gray-300 rounded-md"/>
-      <button type="submit"
-        class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition">
-        Analyze
-      </button>
-    </form>
+<body class="bg-gray-100 font-sans flex flex-col min-h-screen">
 
-    <div id="results" class="mt-6 space-y-4 hidden">
-      <h2 class="text-xl font-semibold">Analysis Report</h2>
-      <div id="report" class="space-y-2 text-sm text-gray-700"></div>
-    </div>
-  </div>
+    <nav class="bg-white shadow-sm py-4 px-6 md:px-8 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold text-blue-600">SEO<span class="text-gray-800">Pro</span></a>
+            <div class="hidden md:flex space-x-8">
+                <a href="#hero" class="text-gray-600 hover:text-blue-600 font-medium transition">Home</a>
+                <a href="#features" class="text-gray-600 hover:text-blue-600 font-medium transition">Features</a>
+                <a href="#pricing" class="text-gray-600 hover:text-blue-600 font-medium transition">Pricing</a>
+                <a href="#footer" class="text-gray-600 hover:text-blue-600 font-medium transition">Contact</a>
+            </div>
+            <div class="md:hidden">
+                <button id="mobile-menu-button" class="text-gray-600 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div id="mobile-menu" class="fixed inset-y-0 right-0 w-64 bg-white z-50 p-6 shadow-lg transform translate-x-full md:hidden">
+            <div class="flex justify-end mb-8">
+                <button id="close-mobile-menu" class="text-gray-600 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <nav class="flex flex-col space-y-4">
+                <a href="#hero" class="block text-gray-800 hover:text-blue-600 font-medium text-lg py-2" onclick="toggleMobileMenu()">Home</a>
+                <a href="#features" class="block text-gray-800 hover:text-blue-600 font-medium text-lg py-2" onclick="toggleMobileMenu()">Features</a>
+                <a href="#pricing" class="block text-gray-800 hover:text-blue-600 font-medium text-lg py-2" onclick="toggleMobileMenu()">Pricing</a>
+                <a href="#footer" class="block text-gray-800 hover:text-blue-600 font-medium text-lg py-2" onclick="toggleMobileMenu()">Contact</a>
+            </nav>
+        </div>
+    </nav>
 
-  <script>
-    const form = document.getElementById('seoForm');
-    const reportContainer = document.getElementById('report');
-    const resultsBox = document.getElementById('results');
+    <main class="flex-grow">
+        <section id="hero" class="relative bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-20 md:py-32 flex items-center justify-center min-h-[60vh]">
+            <div class="container mx-auto px-6 text-center max-w-4xl">
+                <h1 class="text-4xl md:text-6xl font-extrabold mb-6 leading-tight drop-shadow-lg">
+                    Dominate Search Rankings. <br class="hidden md:inline"> Optimize Your Website.
+                </h1>
+                <p class="text-lg md:text-xl mb-10 opacity-90 drop-shadow">
+                    Get an instant, in-depth SEO audit and unlock actionable insights to skyrocket your online visibility.
+                </p>
+                <form id="seoForm" class="bg-white p-4 rounded-lg shadow-xl max-w-2xl mx-auto flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
+                    <input type="url" id="url" required placeholder="Enter your website URL (e.g., https://yourdomain.com)"
+                        class="w-full md:flex-grow p-3 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                        pattern="https?://.*" title="Please enter a valid URL starting with http:// or https://"/>
+                    <button type="submit" id="analyzeButton"
+                        class="w-full md:w-auto bg-blue-600 text-white py-3 px-6 rounded-lg text-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center whitespace-nowrap">
+                        <span id="buttonText">Start Free Audit</span>
+                        <div id="loader" class="loader hidden"></div>
+                    </button>
+                </form>
+                <div id="errorMessage" class="mt-6 p-4 bg-red-100 text-red-700 rounded-lg hidden max-w-2xl mx-auto text-left">
+                    </div>
+            </div>
+        </section>
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const url = document.getElementById('url').value;
-      reportContainer.innerHTML = 'Analyzing...';
-      resultsBox.classList.remove('hidden');
+        <section id="features" class="py-16 bg-white">
+            <div class="container mx-auto px-6 max-w-7xl">
+                <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-12">Powerful Features for SEO Success</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                    <div class="bg-gray-50 p-8 rounded-lg shadow-md text-center">
+                        <div class="text-blue-600 mb-4">
+                            <svg class="h-12 w-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.001 12.001 0 002 12c0 2.753 1.036 5.46 3.003 7.551L12 22.95l6.997-3.419C20.964 17.46 22 14.753 22 12c0-2.316-.763-4.498-2.091-6.262z"></path></svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-3">Comprehensive On-Page Audit</h3>
+                        <p class="text-gray-600">Analyze critical elements like title tags, meta descriptions, headings, and image alt attributes for optimal search visibility.</p>
+                    </div>
+                    <div class="bg-gray-50 p-8 rounded-lg shadow-md text-center">
+                        <div class="text-blue-600 mb-4">
+                            <svg class="h-12 w-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-3">Technical SEO Scan</h3>
+                        <p class="text-gray-600">Check for canonical tags, robots meta, viewport settings, and schema markup to ensure search engine crawlability and indexation.</p>
+                    </div>
+                    <div class="bg-gray-50 p-8 rounded-lg shadow-md text-center">
+                        <div class="text-blue-600 mb-4">
+                            <svg class="h-12 w-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-3">Social Media Optimization</h3>
+                        <p class="text-gray-600">Verify Open Graph and Twitter Card tags to ensure your content looks great when shared across social platforms.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-      try {
-        const response = await fetch('/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url })
+        <section id="pricing" class="py-16 bg-gray-50">
+            <div class="container mx-auto px-6 max-w-7xl">
+                <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-12">Simple & Transparent Pricing</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-white rounded-lg shadow-xl p-8 text-center border-2 border-blue-100">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">Basic</h3>
+                        <p class="text-gray-600 text-4xl font-extrabold mb-6">
+                            Free
+                            <span class="block text-base font-normal text-gray-500">for single scans</span>
+                        </p>
+                        <ul class="text-gray-700 text-left space-y-3 mb-8">
+                            <li class="flex items-center"><svg class="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>Single URL Scans</li>
+                            <li class="flex items-center"><svg class="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>Basic SEO Report</li>
+                            <li class="flex items-center opacity-60"><svg class="w-5 h-5 text-gray-400 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>No Save History</li>
+                            <li class="flex items-center opacity-60"><svg class="w-5 h-5 text-gray-400 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>Limited API Access</li>
+                        </ul>
+                        <button class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">Get Started Free</button>
+                    </div>
+
+                    <div class="bg-blue-600 text-white rounded-lg shadow-xl p-8 text-center transform scale-105 relative z-10">
+                        <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-yellow-900 text-xs px-3 py-1 rounded-full uppercase font-bold tracking-wider">Most Popular</div>
+                        <h3 class="text-2xl font-bold mb-4">Pro</h3>
+                        <p class="text-white text-4xl font-extrabold mb-6">
+                            KES 1,500<span class="block text-base font-normal opacity-80">/month</span>
+                        </p>
+                        <ul class="text-white text-left space-y-3 mb-8 opacity-90">
+                            <li class="flex items-center"><svg class="w-5 h-5 text-yellow-300 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>Unlimited URL Scans</li>
+                            <li class="flex items-center"><svg class="w-5 h-5 text-yellow-300 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>Advanced SEO Reports</li>
+                            <li class="flex items-center"><svg class="w-5 h-5 text-yellow-300 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>Scan History & Analytics</li>
+                            <li class="flex items-center"><svg class="w-5 h-5 text-yellow-300 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>Full API Access</li>
+                        </ul>
+                        <button class="w-full bg-white text-blue-600 py-3 rounded-lg font-semibold hover:bg-blue-100 transition">Choose Pro</button>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-xl p-8 text-center border-2 border-blue-100">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">Business</h3>
+                        <p class="text-gray-600 text-4xl font-extrabold mb-6">
+                            KES 3,800<span class="block text-base font-normal text-gray-500">/month</span>
+                        </p>
+                        <ul class="text-gray-700 text-left space-y-3 mb-8">
+                            <li class="flex items-center"><svg class="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>All Pro Features</li>
+                            <li class="flex items-center"><svg class="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>Priority Support</li>
+                            <li class="flex items-center"><svg class="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>Custom Reporting</li>
+                            <li class="flex items-center"><svg class="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>Team Access</li>
+                        </ul>
+                        <button class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">Contact Sales</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="dashboard-section" class="hidden w-full max-w-4xl mx-auto mt-10 p-6 bg-white shadow-xl rounded-lg">
+            <div class="flex flex-col md:flex-row md:justify-between md:items-start mb-6 pb-4 border-b">
+                <div class="flex-grow mb-4 md:mb-0">
+                    <h1 class="text-3xl font-bold text-gray-800">SEO Analysis</h1>
+                    <p class="text-gray-600 break-words" id="analyzedUrlDisplay"></p>
+                </div>
+                <div class="flex flex-col items-end md:items-end">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <span class="text-gray-700 font-semibold text-lg">Overall Score:</span>
+                        <div class="score-bar-container">
+                            <div id="overallScoreBar" class="score-bar" style="width: 0%;"></div>
+                        </div>
+                        <span id="overallScoreText" class="font-bold text-lg"></span>
+                    </div>
+                    <div id="overallStatusBadge" class="badge"></div>
+                    <button id="analyzeNewButton"
+                        class="mt-4 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300 transition text-sm">
+                        Analyze New URL
+                    </button>
+                </div>
+            </div>
+
+            <div id="report" class="space-y-4 text-gray-700">
+                </div>
+        </section>
+    </main>
+
+    <footer id="footer" class="bg-gray-800 text-white py-10 mt-auto">
+        <div class="container mx-auto px-6 max-w-7xl grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+                <h3 class="text-xl font-bold mb-4 text-blue-400">SEO<span class="text-white">Pro</span></h3>
+                <p class="text-gray-400 text-sm">Empowering your website to rank higher and attract more organic traffic.</p>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li><a href="#hero" class="text-gray-400 hover:text-white transition">Home</a></li>
+                    <li><a href="#features" class="text-gray-400 hover:text-white transition">Features</a></li>
+                    <li><a href="#pricing" class="text-gray-400 hover:text-white transition">Pricing</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition">Privacy Policy</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition">Terms of Service</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Connect With Us</h3>
+                <p class="text-gray-400">Email: info@seopro.com (placeholder)</p>
+                <div class="flex space-x-4 mt-3">
+                    <a href="#" class="text-gray-400 hover:text-white transition"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33V22C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" /></svg></a>
+                    <a href="#" class="text-gray-400 hover:text-white transition"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.297 18.297c-1.42.062-2.529-.39-3.267-1.128-.737-.738-1.19-1.847-1.128-3.267.062-1.42.39-2.529 1.128-3.267.738-.737 1.847-1.19 3.267-1.128 1.42-.062 2.529.39 3.267 1.128.737.738 1.19 1.847 1.128 3.267-.062 1.42-.39 2.529-1.128 3.267-.738.737-1.847 1.19-3.267 1.128zm0 2.5c1.785 0 3.245-.63 4.415-1.8c1.17-1.17 1.8-2.63 1.8-4.415 0-1.785-.63-3.245-1.8-4.415-1.17-1.17-2.63-1.8-4.415-1.8-1.785 0-3.245.63-4.415 1.8-1.17 1.17-1.8 2.63-1.8 4.415 0 1.785.63 3.245 1.8 4.415 1.17 1.17 2.63 1.8 4.415 1.8zM17.5 7.25c.69 0 1.25-.56 1.25-1.25S18.19 4.75 17.5 4.75 16.25 5.31 16.25 6s.56 1.25 1.25 1.25zM22 12c0-2.485-.895-4.75-2.63-6.4C17.75 3.515 15.485 2 13 2H11C8.515 2 6.25 3.515 4.5 5.6C2.75 7.25 2 9.515 2 12c0 2.485.895 4.75 2.63 6.4C6.25 20.485 8.515 22 11 22h2c2.485 0 4.75-1.515 6.4-3.5C21.105 16.75 22 14.485 22 12z"></path></svg></a>
+                </div>
+            </div>
+        </div>
+        <div class="border-t border-gray-700 mt-8 pt-6 text-center text-gray-500 text-sm">
+            &copy; 2025 SEOPro. All rights reserved.
+        </div>
+    </footer>
+
+    <script>
+        const landingPageSection = document.getElementById('landing-page-section');
+        const dashboardSection = document.getElementById('dashboard-section');
+        const seoForm = document.getElementById('seoForm');
+        const urlInput = document.getElementById('url');
+        const reportContainer = document.getElementById('report');
+        const errorMessageDiv = document.getElementById('errorMessage');
+        const analyzeButton = document.getElementById('analyzeButton');
+        const buttonText = document.getElementById('buttonText');
+        const loader = document.getElementById('loader');
+        const analyzeNewButton = document.getElementById('analyzeNewButton');
+        const analyzedUrlDisplay = document.getElementById('analyzedUrlDisplay');
+        const overallScoreBar = document.getElementById('overallScoreBar');
+        const overallScoreText = document.getElementById('overallScoreText');
+        const overallStatusBadge = document.getElementById('overallStatusBadge');
+
+        // Mobile menu elements
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const closeMobileMenuButton = document.getElementById('close-mobile-menu');
+
+        // Helper to reset to the initial landing page state
+        function resetToLandingPageState() {
+            landingPageSection.classList.remove('hidden');
+            dashboardSection.classList.add('hidden');
+            errorMessageDiv.classList.add('hidden');
+            reportContainer.innerHTML = '';
+            urlInput.value = ''; // Clear the input field
+            buttonText.textContent = 'Start Free Audit';
+            loader.classList.add('hidden');
+            analyzeButton.disabled = false;
+            // Scroll to top or hero section when resetting
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- Mobile Menu Toggle ---
+        function toggleMobileMenu() {
+            mobileMenu.classList.toggle('active');
+            // Hide/show body scrollbar based on menu state
+            document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : '';
+        }
+
+        mobileMenuButton.addEventListener('click', toggleMobileMenu);
+        closeMobileMenuButton.addEventListener('click', toggleMobileMenu);
+
+        // Close mobile menu when a nav link is clicked (for smooth scrolling)
+        document.querySelectorAll('#mobile-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+                document.body.style.overflow = ''; // Restore scrollbar
+            });
+        });
+        // --- End Mobile Menu Toggle ---
+
+
+        // Initial setup: ensure landing page is visible and dashboard is hidden
+        resetToLandingPageState();
+
+        seoForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorMessageDiv.classList.add('hidden'); // Hide any previous error
+            
+            const url = urlInput.value.trim();
+
+            // Basic client-side URL validation
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                errorMessageDiv.textContent = 'Please enter a valid URL starting with http:// or https://.';
+                errorMessageDiv.classList.remove('hidden');
+                return;
+            }
+
+            buttonText.textContent = 'Analyzing...';
+            loader.classList.remove('hidden');
+            analyzeButton.disabled = true; // Disable button during analysis
+            analyzedUrlDisplay.textContent = url; // Display URL being analyzed
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success && Array.isArray(data.results)) {
+                    landingPageSection.classList.add('hidden'); // Hide landing page
+                    dashboardSection.classList.remove('hidden'); // Show dashboard
+
+                    let totalPassedChecks = 0;
+                    let totalChecks = 0;
+
+                    // Group results by category
+                    const categories = {
+                        'On-Page SEO Basics': [], // Renamed for more friendly display
+                        'Technical SEO Audit': [], // Renamed
+                        'Social Media Presence': [], // Renamed
+                        'Other Website Checks': [] // Fallback for uncategorized items
+                    };
+
+                    data.results.forEach(item => {
+                        totalChecks++;
+                        if (item.pass) {
+                            totalPassedChecks++;
+                        }
+                        
+                        // Assign items to categories
+                        if (['Title Tag', 'Meta Description', 'H1 Tag Presence', 'Single H1 Tag', 'Image Alt Attributes'].includes(item.title)) {
+                            categories['On-Page SEO Basics'].push(item);
+                        } else if (['Canonical Tag', 'Robots Meta Tag', 'Viewport Meta Tag', 'Favicon', 'Schema Markup (JSON-LD)'].includes(item.title)) {
+                            categories['Technical SEO Audit'].push(item);
+                        } else if (['Open Graph Tags', 'Twitter Card Tags'].includes(item.title)) {
+                            categories['Social Media Presence'].push(item);
+                        } else {
+                            // If an item doesn't fit a specific category, put it in 'General Checks'
+                            categories['Other Website Checks'].push(item);
+                        }
+                    });
+
+                    // Calculate Overall Score and Status
+                    const overallPercentage = totalChecks > 0 ? (totalPassedChecks / totalChecks) * 100 : 0;
+                    overallScoreBar.style.width = `${overallPercentage}%`;
+                    overallScoreText.textContent = `${totalPassedChecks} / ${totalChecks}`;
+                    
+                    let overallStatus = '';
+                    let statusClass = '';
+                    if (overallPercentage >= 80) {
+                        overallStatus = 'Good';
+                        statusClass = 'badge-good';
+                        overallScoreBar.className = 'score-bar bg-score-good';
+                    } else if (overallPercentage >= 50) {
+                        overallStatus = 'Fair';
+                        statusClass = 'badge-fair';
+                        overallScoreBar.className = 'score-bar bg-score-fair';
+                    } else {
+                        overallStatus = 'Poor';
+                        statusClass = 'badge-poor';
+                        overallScoreBar.className = 'score-bar bg-score-poor';
+                    }
+                    overallStatusBadge.textContent = overallStatus;
+                    overallStatusBadge.className = `badge ${statusClass}`;
+
+
+                    // Render categorized results with collapsible sections
+                    let reportHtml = '';
+                    for (const categoryName in categories) {
+                        const categoryItems = categories[categoryName];
+                        if (categoryItems.length > 0) {
+                            const categoryPassed = categoryItems.filter(item => item.pass).length;
+                            const categoryTotal = categoryItems.length;
+                            const categoryPercentage = categoryTotal > 0 ? (categoryPassed / categoryTotal) * 100 : 0;
+
+                            let categoryScoreClass = '';
+                            if (categoryPercentage >= 80) {
+                                categoryScoreClass = 'bg-score-good';
+                            } else if (categoryPercentage >= 50) {
+                                categoryScoreClass = 'bg-score-fair';
+                            } else {
+                                categoryScoreClass = 'bg-score-poor';
+                            }
+
+                            reportHtml += `
+                                <div class="border rounded-lg shadow-sm bg-white">
+                                    <div class="collapsible-header p-4 flex items-center justify-between" data-target="${categoryName.replace(/\s/g, '-')}-content">
+                                        <div class="flex-grow">
+                                            <h3 class="text-lg font-semibold text-gray-800">${categoryName}</h3>
+                                            <div class="flex items-center space-x-2 mt-1">
+                                                <div class="score-bar-container">
+                                                    <div class="score-bar ${categoryScoreClass}" style="width: ${categoryPercentage}%;"></div>
+                                                </div>
+                                                <span class="text-sm font-semibold text-gray-700">${categoryPassed}/${categoryTotal} Passed</span>
+                                            </div>
+                                        </div>
+                                        <svg class="w-5 h-5 text-gray-500 ml-4 transform transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </div>
+                                    <div id="${categoryName.replace(/\s/g, '-')}-content" class="collapsible-content">
+                                        <div class="space-y-3 p-4 pt-0">
+                                            ${categoryItems.map((item) => `
+                                                <div class="flex items-start justify-between bg-gray-50 p-3 rounded-md border border-gray-200">
+                                                    <div class="flex-grow">
+                                                        <strong class="text-gray-900">${item.title}:</strong>
+                                                        <span class="block text-gray-600 text-sm mt-1">${item.description}</span>
+                                                    </div>
+                                                    <div class="ml-4 flex-shrink-0">
+                                                        <span class="font-bold text-lg ${item.pass ? 'text-green-600' : 'text-red-600'}">
+                                                            ${item.pass ? '✅ Pass' : '❌ Fail'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                    reportContainer.innerHTML = reportHtml;
+
+                    // Add event listeners for collapsible sections
+                    document.querySelectorAll('.collapsible-header').forEach(header => {
+                        header.addEventListener('click', () => {
+                            const targetId = header.dataset.target;
+                            const content = document.getElementById(targetId);
+                            if (content) {
+                                header.classList.toggle('expanded');
+                                content.classList.toggle('expanded');
+                            }
+                        });
+                    });
+
+                } else {
+                    errorMessageDiv.textContent = data.message || 'An unexpected error occurred during analysis.';
+                    errorMessageDiv.classList.remove('hidden');
+                    // Ensure landing page stays visible on error
+                    landingPageSection.classList.remove('hidden'); // Make sure it's visible to show error
+                    dashboardSection.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                errorMessageDiv.textContent = 'Could not connect to the server or analyze the URL. Please check your internet connection or the URL.';
+                errorMessageDiv.classList.remove('hidden');
+                // Ensure landing page stays visible on error
+                landingPageSection.classList.remove('hidden'); // Make sure it's visible to show error
+                dashboardSection.classList.add('hidden');
+            } finally {
+                buttonText.textContent = 'Start Free Audit';
+                loader.classList.add('hidden');
+                analyzeButton.disabled = false; // Re-enable button
+            }
         });
 
-        const data = await response.json();
-
-        if (data.success && Array.isArray(data.results)) {
-          reportContainer.innerHTML = data.results.map((item) => `
-            <div class="border p-2 rounded">
-              <strong>${item.title}:</strong>
-              <span class="${item.pass ? 'text-green-600' : 'text-red-600'}">
-                ${item.pass ? '✅ Pass' : '❌ Fail'}
-              </span><br/>
-              <span class="text-gray-600">${item.description}</span>
-            </div>
-          `).join('');
-        } else {
-          reportContainer.innerHTML = '<span class="text-red-600">Invalid response from server.</span>';
-        }
-      } catch (error) {
-        reportContainer.innerHTML = 'Error analyzing URL.';
-      }
-    });
-  </script>
+        analyzeNewButton.addEventListener('click', resetToLandingPageState);
+    </script>
 </body>
 </html>

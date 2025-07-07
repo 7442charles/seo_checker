@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SEO Results | SEO Genius</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+  <div class="min-h-screen flex flex-col items-center justify-center p-6">
+    <h1 class="text-3xl font-bold mb-6">SEO Results</h1>
+    <p id="target-url" class="text-lg text-indigo-600 mb-8 font-medium"></p>
+
+    <div class="bg-white shadow-md rounded-xl p-8 w-full max-w-3xl space-y-6">
+      <div>
+        <h2 class="text-xl font-semibold">Meta Information</h2>
+        <p class="text-sm text-gray-600">Title, Description, Keywords...</p>
+      </div>
+      <div>
+        <h2 class="text-xl font-semibold">Performance</h2>
+        <p class="text-sm text-gray-600">Page speed score: 89/100</p>
+      </div>
+      <div>
+        <h2 class="text-xl font-semibold">Mobile Usability</h2>
+        <p class="text-sm text-gray-600">Looks good on mobile</p>
+      </div>
+      <div>
+        <h2 class="text-xl font-semibold">Security</h2>
+        <p class="text-sm text-gray-600">HTTPS verified</p>
+      </div>
+    </div>
+
+    <a href="index.html" class="mt-10 text-indigo-600 hover:underline">← Analyze another URL</a>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const url = params.get('url');
+    document.getElementById('target-url').textContent = `Results for: ${url}`;
+    // Here you'd ideally fetch and render real SEO analysis from your backend using this URL.
+  </script>
+</body>
+</html>
