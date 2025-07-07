@@ -352,7 +352,7 @@
             loadingMessage.textContent = 'Starting analysis...'; // Initial loading message
 
             // Initialize EventSource
-            const eventSource = new EventSource(`/api/analyze?url=${encodeURIComponent(url)}`);
+            const eventSource = new EventSource(`/analyze?url=${encodeURIComponent(url)}`);
 
             eventSource.onopen = () => {
                 console.log('SSE connection opened.');
