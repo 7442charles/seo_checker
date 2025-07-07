@@ -1,21 +1,13 @@
-// analysis/bodyChecks.js
-
-// Correct way to import cheerio in an ES module context
 import * as cheerioModule from 'cheerio';
 const cheerio = cheerioModule.load; // Assign the load function directly
 
 /**
- * Performs SEO checks specifically on the <body> section of an HTML document.
- * (This is a placeholder for future implementation.)
  * @param {string} htmlContent The full HTML content of the webpage.
  * @returns {Array<Object>} An array of check results, each with title, description, and pass status.
  */
 function performBodyChecks(htmlContent) {
-    const $ = cheerio(htmlContent); // Use cheerio directly as the load function
+    const $ = cheerio(htmlContent); 
     const results = [];
-
-    // Example placeholder checks for the body
-    // You will add more comprehensive checks here later.
 
     // Check for images without alt attributes
     const images = $('img');
