@@ -27,9 +27,6 @@ const clients = new Set();
 // SSE endpoint for analysis results
 app.get('/analyze', async (req, res) => {
     const url = req.query.url;
-    if (!url) {
-        return res.status(400).json({ error: 'Missing URL' });
-    }
 
     // Set up SSE headers
     res.writeHead(200, {
@@ -52,13 +49,28 @@ app.get('/analyze', async (req, res) => {
         clients.delete(res);
     });
 
+    if (!url) {
+        console.error('Missing URL parameter in /analyze request.');
+        sendEvent('analysis_error', { message: 'URL parameter is missing. Please provide a URL to analyze.' });
+        return res.end(); // End the connection if URL is missing
+    }
+
     try {
+        console.log(`[Server] Attempting to fetch URL: ${url}`);
         // 1. Fetch the HTML content once
         const response = await fetch(url, { timeout: 30000 }); // 30-second timeout
+        console.log(`[Server] Fetch response status for ${url}: ${response.status}`);
+
         if (!response.ok) {
-            throw new Error(`Failed to fetch URL: ${response.status} ${response.statusText}`);
+            const errorText = await response.text().catch(() => 'No response body available'); // Try to get text, handle if not available
+            const errorMessage = `Failed to fetch URL (Status: ${response.status}). The target website might be blocking the request or is unreachable. Response body preview: ${errorText.substring(0, 200)}`;
+            console.error(`[Server] ${errorMessage}`);
+            sendEvent('analysis_error', { message: errorMessage });
+            return res.end(); // End the connection on fetch failure
         }
+
         const htmlContent = await response.text();
+        console.log(`[Server] Successfully fetched HTML for ${url}. Starting analysis...`);
 
         // 2. Run checks simultaneously
         const checkPromises = [];
@@ -68,6 +80,7 @@ app.get('/analyze', async (req, res) => {
             (async () => {
                 const headResults = performHeadChecks(htmlContent);
                 sendEvent('head_checks_complete', { results: headResults });
+                console.log('[Server] Head checks streamed.');
                 return headResults;
             })()
         );
@@ -77,6 +90,7 @@ app.get('/analyze', async (req, res) => {
             (async () => {
                 const bodyResults = performBodyChecks(htmlContent);
                 sendEvent('body_checks_complete', { results: bodyResults });
+                console.log('[Server] Body checks streamed.');
                 return bodyResults;
             })()
         );
@@ -87,19 +101,21 @@ app.get('/analyze', async (req, res) => {
         // Flatten all results into a single array
         const combinedResults = allResults.flat();
 
-        // Send a final event indicating completion and overall data (optional, but good for frontend)
+        // Send a final event indicating completion and overall data
         sendEvent('analysis_complete', { message: 'All analysis complete!', totalResults: combinedResults.length });
+        console.log(`[Server] Analysis complete and final event sent for ${url}.`);
 
     } catch (err) {
-        console.error('Analysis error:', err.message, err.stack);
-        sendEvent('analysis_error', { message: `Failed to analyze URL: ${err.message}. Please try again with a valid and accessible URL.` });
+        // Catch any errors that occur during fetch or analysis processing
+        console.error(`[Server] Critical analysis error for URL: ${url}`, err.message, err.stack);
+        sendEvent('analysis_error', { message: `Server-side error during analysis: ${err.message}. Please try again with a valid and accessible URL.` });
     } finally {
-        // End the SSE connection after all data is sent or an error occurs
+        // Ensure the SSE connection is always closed
         res.end();
-        clients.delete(res); // Ensure client is removed even if res.end() is called
+        clients.delete(res); // Ensure client is removed from the set
+        console.log(`[Server] SSE connection closed for ${url}.`);
     }
 });
-
 // Serve results.html when accessed directly or redirected
 app.get('/results.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'results.html'));
