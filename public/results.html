@@ -10,7 +10,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://seopro.ckn.co.ke/">
     <meta property="og:title" content="SEOPro — Powerful SEO Checker Tool">
-    <meta property="og:description" content="Analyze your website's SEO performance with SEOPro. Get insights on meta tags, keywords, speed, mobile usability, and more.">
+    <meta property="og:description" content="Analyze your site's SEO, speed, and mobile usability with SEOPro. Fast, accurate, and free.">
     <meta property="og:image" content="https://seopro.ckn.co.ke/assets/og-image.jpg">
 
     <meta name="twitter:card" content="summary_large_image">
@@ -97,7 +97,7 @@
         .bg-score-fair { background-color: #eab308; /* yellow-500 */ }
         .bg-score-poor { background-color: #ef4444; /* red-500 */ }
 
-        /* Overall Status Badges (might be less used with score circles) */
+        /* Overall Status Badges */
         .badge {
             padding: 0.25rem 0.75rem;
             border-radius: 9999px;
@@ -108,74 +108,6 @@
         .badge-fair { background-color: #fef9c3; /* yellow-100 */ color: #a16207; /* yellow-700 */ }
         .badge-poor { background-color: #fee2e2; /* red-100 */ color: #dc2626; /* red-600 */ }
 
-        /* NEW: Score Circle for Lighthouse Scores */
-        .score-circle {
-            position: relative;
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: conic-gradient(#e2e8f0 360deg); /* Tailwind gray-200 */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.25rem;
-            color: #4a5568; /* Tailwind gray-700 */
-            box-shadow: inset 0 0 0 5px white; /* Inner ring effect */
-        }
-        /* No ::before pseudo-element needed with conic-gradient */
-        .score-circle span {
-            position: relative;
-            z-index: 2;
-        }
-        .score-circle.score-good {
-            background: conic-gradient(#22c55e var(--score-angle), #e2e8f0 0deg);
-            color: #16a34a; /* green-600 */
-        }
-        .score-circle.score-fair {
-            background: conic-gradient(#eab308 var(--score-angle), #e2e8f0 0deg);
-            color: #a16207; /* yellow-700 */
-        }
-        .score-circle.score-poor {
-            background: conic-gradient(#ef4444 var(--score-angle), #e2e8f0 0deg);
-            color: #dc2626; /* red-600 */
-        }
-
-        /* Tooltip styles */
-        .tooltip {
-            position: relative;
-            display: inline-block;
-        }
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 200px;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 6px;
-            padding: 5px 0;
-            position: absolute;
-            z-index: 10;
-            bottom: 125%; /* Position above the element */
-            left: 50%;
-            margin-left: -100px; /* Center the tooltip */
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .tooltip .tooltiptext::after {
-            content: "";
-            position: absolute;
-            top: 100%; /* At the bottom of the tooltip */
-            left: 50%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: #333 transparent transparent transparent;
-        }
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-            opacity: 1;
-        }
         .hidden {
             display: none !important;
         }
@@ -202,10 +134,16 @@
                     <p class="text-gray-600 break-words" id="analyzedUrlDisplay">Loading URL...</p>
                 </div>
                 <div class="flex flex-col items-end md:items-end">
+                    <!-- Overall Score Display -->
                     <div class="flex items-center space-x-2 mb-2">
-                        <span class="text-gray-700 font-semibold text-lg">Lighthouse SEO:</span>
-                        <div id="lighthouseSeoScoreCircle" class="score-circle"><span>--</span></div>
+                        <span class="text-gray-700 font-semibold text-lg">Overall Score:</span>
+                        <div class="score-bar-container">
+                            <div id="overallScoreBar" class="score-bar" style="width: 0%;"></div>
+                        </div>
+                        <span id="overallScoreText" class="font-bold text-lg">-- / --</span>
                     </div>
+                    <div id="overallStatusBadge" class="badge">Calculating...</div>
+
                     <button id="analyzeNewButton"
                         class="mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition text-sm">
                         Analyze New URL
@@ -213,33 +151,13 @@
                 </div>
             </div>
 
-            <div class="mb-8">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Core Web Vitals & Lighthouse Overview</h2>
-                <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-6 text-center">
-                    <div class="flex flex-col items-center">
-                        <div id="lighthousePerformanceScore" class="score-circle"><span>--</span></div>
-                        <p class="mt-2 font-semibold text-gray-700">Performance</p>
-                    </div>
-                    <div class="flex flex-col items-center">
-                        <div id="lighthouseAccessibilityScore" class="score-circle"><span>--</span></div>
-                        <p class="mt-2 font-semibold text-gray-700">Accessibility</p>
-                    </div>
-                    <div class="flex flex-col items-center">
-                        <div id="lighthouseBestPracticesScore" class="score-circle"><span>--</span></div>
-                        <p class="mt-2 font-semibold text-gray-700">Best Practices</p>
-                    </div>
-                    <div class="flex flex-col items-center">
-                        <div id="lighthouseSeoScoreOverall" class="score-circle"><span>--</span></div>
-                        <p class="mt-2 font-semibold text-gray-700">SEO Score</p>
-                    </div>
-                </div>
-            </div>
-
+            <!-- Loading Indicator for the entire report section -->
             <div id="loading-indicator" class="text-center py-10">
                 <div class="loader mx-auto mb-3"></div>
-                <p id="loadingMessage" class="text-gray-600 text-lg">Fetching analysis results...</p>
+                <p id="loadingMessage" class="text-gray-600 text-lg">Starting analysis...</p>
             </div>
 
+            <!-- Report content will be dynamically loaded here -->
             <div id="report" class="space-y-4 text-gray-700 hidden">
                 </div>
         </section>
@@ -282,40 +200,133 @@
         const loadingMessage = document.getElementById('loadingMessage');
         const loadingIndicator = document.getElementById('loading-indicator');
 
-        // Lighthouse Score Circle elements
+        // Overall Score elements
+        const overallScoreBar = document.getElementById('overallScoreBar');
+        const overallScoreText = document.getElementById('overallScoreText');
+        const overallStatusBadge = document.getElementById('overallStatusBadge');
+
+        // Remove Lighthouse specific elements
         const lighthousePerformanceScore = document.getElementById('lighthousePerformanceScore');
         const lighthouseAccessibilityScore = document.getElementById('lighthouseAccessibilityScore');
         const lighthouseBestPracticesScore = document.getElementById('lighthouseBestPracticesScore');
         const lighthouseSeoScoreOverall = document.getElementById('lighthouseSeoScoreOverall');
         const lighthouseSeoScoreCircleHeader = document.getElementById('lighthouseSeoScoreCircle');
 
+        // Remove Lighthouse score circles from the DOM
+        if (lighthousePerformanceScore) lighthousePerformanceScore.parentElement.remove();
+        if (lighthouseAccessibilityScore) lighthouseAccessibilityScore.parentElement.remove();
+        if (lighthouseBestPracticesScore) lighthouseBestPracticesScore.parentElement.remove();
+        if (lighthouseSeoScoreOverall) lighthouseSeoScoreOverall.parentElement.remove();
+        if (lighthouseSeoScoreCircleHeader) lighthouseSeoScoreCircleHeader.parentElement.remove();
 
-        // Function to update the circular score display
-        function updateScoreCircle(element, score) {
-            // Check if element and score are valid before proceeding
-            if (!element || typeof score !== 'number' || isNaN(score)) {
-                console.warn('Invalid element or score provided to updateScoreCircle', element, score);
-                if (element) {
-                    element.querySelector('span').textContent = 'N/A';
-                    element.style.setProperty('--score-angle', `0deg`);
-                    element.classList.remove('score-good', 'score-fair', 'score-poor');
-                }
-                return;
-            }
 
-            element.querySelector('span').textContent = score;
-            const angle = score * 3.6; // Convert percentage to degrees (360 / 100 = 3.6)
-            element.style.setProperty('--score-angle', `${angle}deg`);
+        // Store all incoming results globally
+        let allResults = [];
+        let totalChecks = 0;
+        let passedChecks = 0;
 
-            // Apply color based on score thresholds (Lighthouse typically uses these)
-            element.classList.remove('score-good', 'score-fair', 'score-poor');
-            if (score >= 90) {
-                element.classList.add('score-good');
-            } else if (score >= 50) {
-                element.classList.add('score-fair');
+        // Function to update the overall score display
+        function updateOverallScore() {
+            const overallPercentage = totalChecks > 0 ? (passedChecks / totalChecks) * 100 : 0;
+            overallScoreBar.style.width = `${overallPercentage}%`;
+            overallScoreText.textContent = `${passedChecks} / ${totalChecks}`;
+
+            let overallStatus = '';
+            let statusClass = '';
+            if (overallPercentage >= 80) {
+                overallStatus = 'Good';
+                statusClass = 'badge-good';
+                overallScoreBar.className = 'score-bar bg-score-good';
+            } else if (overallPercentage >= 50) {
+                overallStatus = 'Fair';
+                statusClass = 'badge-fair';
+                overallScoreBar.className = 'score-bar bg-score-fair';
             } else {
-                element.classList.add('score-poor');
+                overallStatus = 'Poor';
+                statusClass = 'badge-poor';
+                overallScoreBar.className = 'score-bar bg-score-poor';
             }
+            overallStatusBadge.textContent = overallStatus;
+            overallStatusBadge.className = `badge ${statusClass}`;
+        }
+
+        // Function to render results into collapsible sections
+        function renderResults(resultsToRender) {
+            // Group results by category
+            const categories = {};
+            resultsToRender.forEach(item => {
+                const category = item.category || 'General Checks'; // Use 'General Checks' if category is not defined
+                if (!categories[category]) {
+                    categories[category] = [];
+                }
+                categories[category].push(item);
+            });
+
+            let reportHtml = '';
+            for (const categoryName in categories) {
+                const categoryItems = categories[categoryName];
+                const categoryPassed = categoryItems.filter(item => item.pass).length;
+                const categoryTotal = categoryItems.length;
+                const categoryPercentage = categoryTotal > 0 ? (categoryPassed / categoryTotal) * 100 : 0;
+
+                let categoryScoreClass = '';
+                if (categoryPercentage >= 80) {
+                    categoryScoreClass = 'bg-score-good';
+                } else if (categoryPercentage >= 50) {
+                    categoryScoreClass = 'bg-score-fair';
+                } else {
+                    categoryScoreClass = 'bg-score-poor';
+                }
+
+                reportHtml += `
+                    <div class="border rounded-lg shadow-sm bg-white">
+                        <div class="collapsible-header p-4 flex items-center justify-between" data-target="${categoryName.replace(/\s/g, '-')}-content">
+                            <div class="flex-grow">
+                                <h3 class="text-lg font-semibold text-gray-800">${categoryName}</h3>
+                                <div class="flex items-center space-x-2 mt-1">
+                                    <div class="score-bar-container">
+                                        <div class="score-bar ${categoryScoreClass}" style="width: ${categoryPercentage}%;"></div>
+                                    </div>
+                                    <span class="text-sm font-semibold text-gray-700">${categoryPassed}/${categoryTotal} Passed</span>
+                                </div>
+                            </div>
+                            <svg class="w-5 h-5 text-gray-500 ml-4 transform transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <div id="${categoryName.replace(/\s/g, '-')}-content" class="collapsible-content">
+                            <div class="space-y-3 p-4 pt-0">
+                                ${categoryItems.map((item) => `
+                                    <div class="flex items-start justify-between bg-gray-50 p-3 rounded-md border border-gray-200">
+                                        <div class="flex-grow">
+                                            <strong class="text-gray-900">${item.title}:</strong>
+                                            <span class="block text-gray-600 text-sm mt-1">${item.description}</span>
+                                        </div>
+                                        <div class="ml-4 flex-shrink-0">
+                                            <span class="font-bold text-lg ${item.pass ? 'text-green-600' : 'text-red-600'}">
+                                                ${item.pass ? '✅ Pass' : '❌ Fail'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            reportContainer.innerHTML = reportHtml;
+
+            // Add event listeners for collapsible sections
+            document.querySelectorAll('.collapsible-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const targetId = header.dataset.target;
+                    const content = document.getElementById(targetId);
+                    if (content) {
+                        header.classList.toggle('expanded');
+                        content.classList.toggle('expanded');
+                    }
+                });
+            });
         }
 
         // Function to reset and go back to the home page
@@ -325,13 +336,9 @@
 
         analyzeNewButton.addEventListener('click', analyzeNewUrl);
 
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             const url = params.get("url");
-
-            // Show loading indicator immediately
-            loadingIndicator.classList.remove('hidden');
-            reportContainer.classList.add('hidden'); // Ensure report content is hidden initially
 
             if (!url) {
                 loadingMessage.textContent = 'No URL provided for analysis. Redirecting...';
@@ -342,205 +349,67 @@
             }
 
             analyzedUrlDisplay.textContent = url; // Display URL immediately
+            loadingMessage.textContent = 'Starting analysis...'; // Initial loading message
 
-            try {
-                const response = await fetch(`/analyze?url=${encodeURIComponent(url)}`);
-                const responseData = await response.json(); // Renamed to avoid conflict with 'data' variable for report content
+            // Initialize EventSource
+            const eventSource = new EventSource(`/analyze?url=${encodeURIComponent(url)}`);
 
-                if (response.ok && responseData.success && responseData.data) {
-                    loadingIndicator.classList.add('hidden'); // Hide loading indicator
-                    reportContainer.classList.remove('hidden'); // Show report container
+            eventSource.onopen = () => {
+                console.log('SSE connection opened.');
+                loadingMessage.textContent = 'Fetching and parsing website content...';
+            };
 
-                    const lighthouseData = responseData.data.lighthouse;
-                    const cheerioData = responseData.data.cheerio;
-                    const combinedCustomChecks = responseData.data.results; // Our custom checks from seoAnalyzer.js
+            eventSource.addEventListener('head_checks_complete', (event) => {
+                const data = JSON.parse(event.data);
+                console.log('Head checks complete:', data.results);
+                loadingMessage.textContent = 'Head section analysis complete. Running body checks...';
+                allResults = allResults.concat(data.results);
+                data.results.forEach(item => {
+                    totalChecks++;
+                    if (item.pass) passedChecks++;
+                });
+                renderResults(allResults); // Re-render with updated results
+                updateOverallScore();
+            });
 
-                    // Update Lighthouse Scores Overview
-                    if (lighthouseData && lighthouseData.scores) {
-                        updateScoreCircle(lighthousePerformanceScore, lighthouseData.scores.performance);
-                        updateScoreCircle(lighthouseAccessibilityScore, lighthouseData.scores.accessibility);
-                        updateScoreCircle(lighthouseBestPracticesScore, lighthouseData.scores['best-practices']);
-                        updateScoreCircle(lighthouseSeoScoreOverall, lighthouseData.scores.seo);
-                        updateScoreCircle(lighthouseSeoScoreCircleHeader, lighthouseData.scores.seo); // Top header score
-                    } else {
-                        // Handle case where Lighthouse data might be missing or errored
-                        updateScoreCircle(lighthousePerformanceScore, 'N/A');
-                        updateScoreCircle(lighthouseAccessibilityScore, 'N/A');
-                        updateScoreCircle(lighthouseBestPracticesScore, 'N/A');
-                        updateScoreCircle(lighthouseSeoScoreOverall, 'N/A');
-                        updateScoreCircle(lighthouseSeoScoreCircleHeader, 'N/A');
-                    }
+            eventSource.addEventListener('body_checks_complete', (event) => {
+                const data = JSON.parse(event.data);
+                console.log('Body checks complete:', data.results);
+                loadingMessage.textContent = 'Body section analysis complete. Finalizing report...';
+                allResults = allResults.concat(data.results);
+                data.results.forEach(item => {
+                    totalChecks++;
+                    if (item.pass) passedChecks++;
+                });
+                renderResults(allResults); // Re-render with updated results
+                updateOverallScore();
+            });
 
+            eventSource.addEventListener('analysis_complete', (event) => {
+                const data = JSON.parse(event.data);
+                console.log('Analysis complete:', data.message);
+                loadingIndicator.classList.add('hidden'); // Hide loading indicator
+                reportContainer.classList.remove('hidden'); // Show report content
+                loadingMessage.textContent = 'Analysis complete!'; // Final message
+                eventSource.close(); // Close the SSE connection
+            });
 
-                    // Group results by category (both custom and Lighthouse)
-                    const categories = {
-                        'On-Page SEO Basics': [],
-                        'Technical SEO Audit (Custom)': [], // Renamed to distinguish
-                        'Lighthouse SEO Audits': [],
-                        'Lighthouse Performance Audits': [],
-                        'Lighthouse Accessibility Audits': [],
-                        'Lighthouse Best Practices Audits': [],
-                    };
-
-                    // Add custom Cheerio-based checks to their respective categories
-                    combinedCustomChecks.forEach(item => {
-                        // Ensure category exists before pushing
-                        if (item.category === 'Technical SEO Audit') { // Map old category name
-                            categories['Technical SEO Audit (Custom)'].push(item);
-                        } else if (categories[item.category]) {
-                            categories[item.category].push(item);
-                        }
-                    });
-
-                    // Add Lighthouse Audits to their respective categories
-                    if (lighthouseData && lighthouseData.audits) {
-                        for (const categoryId in lighthouseData.audits) {
-                            const categoryInfo = lighthouseData.audits[categoryId];
-                            let categoryNameForDisplay;
-
-                            if (categoryId === 'seo') categoryNameForDisplay = 'Lighthouse SEO Audits';
-                            else if (categoryId === 'performance') categoryNameForDisplay = 'Lighthouse Performance Audits';
-                            else if (categoryId === 'accessibility') categoryNameForDisplay = 'Lighthouse Accessibility Audits';
-                            else if (categoryId === 'best-practices') categoryNameForDisplay = 'Lighthouse Best Practices Audits';
-                            else continue; // Skip unknown Lighthouse categories
-
-                            // Ensure the category array exists
-                            if (!categories[categoryNameForDisplay]) {
-                                categories[categoryNameForDisplay] = [];
-                            }
-
-                            categoryInfo.audits.forEach(audit => {
-                                // Add all Lighthouse audits, including passed ones, for completeness.
-                                // We'll use item.displayType for nuanced styling.
-                                categories[categoryNameForDisplay].push({
-                                    title: audit.title,
-                                    description: audit.description,
-                                    pass: audit.score === 1, // Lighthouse score 1 means pass
-                                    displayType: audit.displayType, // 'pass', 'fail', 'warning', 'notApplicable', 'info'
-                                });
-                            });
-                        }
-                    }
-
-                    // Render categorized results with collapsible sections
-                    let reportHtml = '';
-                    for (const categoryName in categories) {
-                        const categoryItems = categories[categoryName];
-                        if (categoryItems.length > 0) {
-                            const categoryPassed = categoryItems.filter(item => item.pass && item.displayType !== 'notApplicable').length;
-                            const categoryTotal = categoryItems.filter(item => item.displayType !== 'notApplicable').length; // Only count applicable items
-                            const categoryPercentage = categoryTotal > 0 ? (categoryPassed / categoryTotal) * 100 : 0;
-
-                            let categoryScoreClass = '';
-                            if (categoryPercentage >= 80) {
-                                categoryScoreClass = 'bg-score-good';
-                            } else if (categoryPercentage >= 50) {
-                                categoryScoreClass = 'bg-score-fair';
-                            } else {
-                                categoryScoreClass = 'bg-score-poor';
-                            }
-
-                            reportHtml += `
-                                <div class="border rounded-lg shadow-sm bg-white">
-                                    <div class="collapsible-header p-4 flex items-center justify-between" data-target="${categoryName.replace(/\s/g, '-')}-content">
-                                        <div class="flex-grow">
-                                            <h3 class="text-lg font-semibold text-gray-800">${categoryName}</h3>
-                                            <div class="flex items-center space-x-2 mt-1">
-                                                <div class="score-bar-container">
-                                                    <div class="score-bar ${categoryScoreClass}" style="width: ${categoryPercentage}%;"></div>
-                                                </div>
-                                                <span class="text-sm font-semibold text-gray-700">${categoryPassed}/${categoryTotal} Passed</span>
-                                            </div>
-                                        </div>
-                                        <svg class="w-5 h-5 text-gray-500 ml-4 transform transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                                        </svg>
-                                    </div>
-                                    <div id="${categoryName.replace(/\s/g, '-')}-content" class="collapsible-content">
-                                        <div class="space-y-3 p-4 pt-0">
-                                            ${categoryItems.map((item) => {
-                                                let icon = '';
-                                                let colorClass = '';
-                                                let statusText = '';
-
-                                                switch (item.displayType) {
-                                                    case 'pass':
-                                                        icon = '✅';
-                                                        colorClass = 'text-green-600';
-                                                        statusText = 'Pass';
-                                                        break;
-                                                    case 'fail':
-                                                        icon = '❌';
-                                                        colorClass = 'text-red-600';
-                                                        statusText = 'Fail';
-                                                        break;
-                                                    case 'warning':
-                                                        icon = '⚠️';
-                                                        colorClass = 'text-yellow-700';
-                                                        statusText = 'Warning';
-                                                        break;
-                                                    case 'notApplicable':
-                                                        icon = '⚪'; // White circle or similar
-                                                        colorClass = 'text-gray-500';
-                                                        statusText = 'N/A';
-                                                        break;
-                                                    case 'info': // For general information audits
-                                                        icon = 'ℹ️';
-                                                        colorClass = 'text-blue-600';
-                                                        statusText = 'Info';
-                                                        break;
-                                                    default: // Fallback for custom checks where pass/fail is primary
-                                                        icon = item.pass ? '✅' : '❌';
-                                                        colorClass = item.pass ? 'text-green-600' : 'text-red-600';
-                                                        statusText = item.pass ? 'Pass' : 'Fail';
-                                                        break;
-                                                }
-
-                                                return `
-                                                    <div class="flex items-start justify-between bg-gray-50 p-3 rounded-md border border-gray-200">
-                                                        <div class="flex-grow">
-                                                            <strong class="text-gray-900">${item.title}:</strong>
-                                                            <span class="block text-gray-600 text-sm mt-1">${item.description}</span>
-                                                        </div>
-                                                        <div class="ml-4 flex-shrink-0">
-                                                            <span class="font-bold text-lg ${colorClass}">
-                                                                ${icon} ${statusText}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                `;
-                                            }).join('')}
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                        }
-                    }
-                    reportContainer.innerHTML = reportHtml;
-
-                    // Add event listeners for collapsible sections
-                    document.querySelectorAll('.collapsible-header').forEach(header => {
-                        header.addEventListener('click', () => {
-                            const targetId = header.dataset.target;
-                            const content = document.getElementById(targetId);
-                            if (content) {
-                                header.classList.toggle('expanded');
-                                content.classList.toggle('expanded');
-                            }
-                        });
-                    });
-
-                } else {
-                    loadingMessage.textContent = responseData.message || 'An unexpected error occurred during analysis.';
-                    loadingIndicator.classList.remove('hidden'); // Keep error message visible
-                    reportContainer.classList.add('hidden'); // Ensure report content is hidden
-                }
-            } catch (error) {
-                console.error('Fetch error:', error);
-                loadingMessage.textContent = 'Could not connect to the server or analyze the URL. Please check your internet connection or the URL.';
+            eventSource.addEventListener('analysis_error', (event) => {
+                const data = JSON.parse(event.data);
+                console.error('Analysis error from server:', data.message);
+                loadingMessage.textContent = `Error: ${data.message}`;
                 loadingIndicator.classList.remove('hidden'); // Keep error message visible
                 reportContainer.classList.add('hidden'); // Ensure report content is hidden
-            }
+                eventSource.close(); // Close the SSE connection on error
+            });
+
+            eventSource.onerror = (error) => {
+                console.error('SSE Error:', error);
+                loadingMessage.textContent = 'Connection error during analysis. Please try again.';
+                loadingIndicator.classList.remove('hidden');
+                reportContainer.classList.add('hidden');
+                eventSource.close();
+            };
         });
     </script>
 </body>
