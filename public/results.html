@@ -181,7 +181,7 @@
             </div>
             <div>
                 <h3 class="text-lg font-semibold mb-4">Connect With Us</h3>
-                <p class="text-gray-400">Email: info@seopro.com (placeholder)</p>
+                <p class="text-gray-400">Email: info@ckn.co.ke</p>
                 <div class="flex space-x-4 mt-3">
                     <a href="#" class="text-gray-400 hover:text-white transition"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33V22C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" /></svg></a>
                     <a href="#" class="text-gray-400 hover:text-white transition"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.297 18.297c-1.42.062-2.529-.39-3.267-1.128-.737-.738-1.19-1.847-1.128-3.267.062-1.42.39-2.529 1.128-3.267.738-.737 1.847-1.19 3.267-1.128 1.42-.062 2.529.39 3.267 1.128.737.738 1.19 1.847 1.128 3.267-.062 1.42-.39 2.529-1.128 3.267-.738.737-1.847 1.19-3.267 1.128zm0 2.5c1.785 0 3.245-.63 4.415-1.8c1.17-1.17 1.8-2.63 1.8-4.415 0-1.785-.63-3.245-1.8-4.415-1.17-1.17-2.63-1.8-4.415-1.8-1.785 0-3.245.63-4.415 1.8-1.17 1.17-1.8 2.63-1.8 4.415 0 1.785.63 3.245 1.8 4.415 1.17 1.17 2.63 1.8 4.415 1.8zM17.5 7.25c.69 0 1.25-.56 1.25-1.25S18.19 4.75 17.5 4.75 16.25 5.31 16.25 6s.56 1.25 1.25 1.25zM22 12c0-2.485-.895-4.75-2.63-6.4C17.75 3.515 15.485 2 13 2H11C8.515 2 6.25 3.515 4.5 5.6C2.75 7.25 2 9.515 2 12c0 2.485.895 4.75 2.63 6.4C6.25 20.485 8.515 22 11 22h2c2.485 0 4.75-1.515 6.4-3.5C21.105 16.75 22 14.485 22 12z"></path></svg></a>
@@ -189,8 +189,15 @@
             </div>
         </div>
         <div class="border-t border-gray-700 mt-8 pt-6 text-center text-gray-500 text-sm">
-            &copy; 2025 SEOPro. All rights reserved.
+            &copy; <span id="current-year"></span> SEOPro. All rights reserved.
         </div>
+
+        <script>
+            // Get the current year
+            const currentYear = new Date().getFullYear();
+            // Find the span element by its ID and update its text content
+            document.getElementById('current-year').textContent = currentYear;
+        </script>
     </footer>
 
     <script>
