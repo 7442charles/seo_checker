@@ -25,6 +25,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -134,7 +135,6 @@
                     <p class="text-gray-600 break-words" id="analyzedUrlDisplay">Loading URL...</p>
                 </div>
                 <div class="flex flex-col items-end md:items-end">
-                    <!-- Overall Score Display -->
                     <div class="flex items-center space-x-2 mb-2">
                         <span class="text-gray-700 font-semibold text-lg">Overall Score:</span>
                         <div class="score-bar-container">
@@ -144,22 +144,27 @@
                     </div>
                     <div id="overallStatusBadge" class="badge">Calculating...</div>
 
-                    <button id="analyzeNewButton"
-                        class="mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition text-sm">
-                        Analyze New URL
-                    </button>
-                </div>
+                    <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mt-4">
+                        <button id="analyzeNewButton"
+                            class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition text-sm">
+                            Analyze New URL
+                        </button>
+                        <button id="downloadPdfButton"
+                            class="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition text-sm">
+                            Download PDF Report
+                        </button>
+                        </div>
+                    <p id="pdfMessage" class="text-gray-600 text-sm mt-2 hidden"></p>
+                    </div>
             </div>
 
-            <!-- Loading Indicator for the entire report section -->
             <div id="loading-indicator" class="text-center py-10">
                 <div class="loader mx-auto mb-3"></div>
                 <p id="loadingMessage" class="text-gray-600 text-lg">Starting analysis...</p>
             </div>
 
-            <!-- Report content will be dynamically loaded here -->
             <div id="report" class="space-y-4 text-gray-700 hidden">
-                </div>
+            </div>
         </section>
     </main>
 
@@ -181,7 +186,7 @@
             </div>
             <div>
                 <h3 class="text-lg font-semibold mb-4">Connect With Us</h3>
-                <p class="text-gray-400">Email: info@ckn.co.ke</p>
+                <p class="text-gray-400">Email: info@seopro.com (placeholder)</p>
                 <div class="flex space-x-4 mt-3">
                     <a href="#" class="text-gray-400 hover:text-white transition"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33V22C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" /></svg></a>
                     <a href="#" class="text-gray-400 hover:text-white transition"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.297 18.297c-1.42.062-2.529-.39-3.267-1.128-.737-.738-1.19-1.847-1.128-3.267.062-1.42.39-2.529 1.128-3.267.738-.737 1.847-1.19 3.267-1.128 1.42-.062 2.529.39 3.267 1.128.737.738 1.19 1.847 1.128 3.267-.062 1.42-.39 2.529-1.128 3.267-.738.737-1.847 1.19-3.267 1.128zm0 2.5c1.785 0 3.245-.63 4.415-1.8c1.17-1.17 1.8-2.63 1.8-4.415 0-1.785-.63-3.245-1.8-4.415-1.17-1.17-2.63-1.8-4.415-1.8-1.785 0-3.245.63-4.415 1.8-1.17 1.17-1.8 2.63-1.8 4.415 0 1.785.63 3.245 1.8 4.415 1.17 1.17 2.63 1.8 4.415 1.8zM17.5 7.25c.69 0 1.25-.56 1.25-1.25S18.19 4.75 17.5 4.75 16.25 5.31 16.25 6s.56 1.25 1.25 1.25zM22 12c0-2.485-.895-4.75-2.63-6.4C17.75 3.515 15.485 2 13 2H11C8.515 2 6.25 3.515 4.5 5.6C2.75 7.25 2 9.515 2 12c0 2.485.895 4.75 2.63 6.4C6.25 20.485 8.515 22 11 22h2c2.485 0 4.75-1.515 6.4-3.5C21.105 16.75 22 14.485 22 12z"></path></svg></a>
@@ -191,19 +196,15 @@
         <div class="border-t border-gray-700 mt-8 pt-6 text-center text-gray-500 text-sm">
             &copy; <span id="current-year"></span> SEOPro. All rights reserved.
         </div>
-
-        <script>
-            // Get the current year
-            const currentYear = new Date().getFullYear();
-            // Find the span element by its ID and update its text content
-            document.getElementById('current-year').textContent = currentYear;
-        </script>
     </footer>
 
     <script>
         const analyzedUrlDisplay = document.getElementById('analyzedUrlDisplay');
         const reportContainer = document.getElementById('report');
         const analyzeNewButton = document.getElementById('analyzeNewButton');
+        const downloadPdfButton = document.getElementById('downloadPdfButton');
+        const pdfMessage = document.getElementById('pdfMessage');
+
         const loadingMessage = document.getElementById('loadingMessage');
         const loadingIndicator = document.getElementById('loading-indicator');
 
@@ -212,14 +213,14 @@
         const overallScoreText = document.getElementById('overallScoreText');
         const overallStatusBadge = document.getElementById('overallStatusBadge');
 
-        // Remove Lighthouse specific elements
+        // Remove Lighthouse specific elements (if they exist from previous versions)
+        // Ensure these elements are actually removed from the HTML if you don't use them
         const lighthousePerformanceScore = document.getElementById('lighthousePerformanceScore');
         const lighthouseAccessibilityScore = document.getElementById('lighthouseAccessibilityScore');
         const lighthouseBestPracticesScore = document.getElementById('lighthouseBestPracticesScore');
         const lighthouseSeoScoreOverall = document.getElementById('lighthouseSeoScoreOverall');
         const lighthouseSeoScoreCircleHeader = document.getElementById('lighthouseSeoScoreCircle');
 
-        // Remove Lighthouse score circles from the DOM
         if (lighthousePerformanceScore) lighthousePerformanceScore.parentElement.remove();
         if (lighthouseAccessibilityScore) lighthouseAccessibilityScore.parentElement.remove();
         if (lighthouseBestPracticesScore) lighthouseBestPracticesScore.parentElement.remove();
@@ -272,8 +273,10 @@
             let reportHtml = '';
             for (const categoryName in categories) {
                 const categoryItems = categories[categoryName];
-                const categoryPassed = categoryItems.filter(item => item.pass).length;
-                const categoryTotal = categoryItems.length;
+                // Filter out items that are not applicable for scoring (e.g., informational checks)
+                const applicableItems = categoryItems.filter(item => item.pass !== undefined); // Assuming 'pass' indicates applicability
+                const categoryPassed = applicableItems.filter(item => item.pass).length;
+                const categoryTotal = applicableItems.length;
                 const categoryPercentage = categoryTotal > 0 ? (categoryPassed / categoryTotal) * 100 : 0;
 
                 let categoryScoreClass = '';
@@ -298,7 +301,7 @@
                                 </div>
                             </div>
                             <svg class="w-5 h-5 text-gray-500 ml-4 transform transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 0 011.414-1.414l4 4a1 0 010 1.414l-4 4a1 0 01-1.414 0z" clip-rule="evenodd"></path>
                             </svg>
                         </div>
                         <div id="${categoryName.replace(/\s/g, '-')}-content" class="collapsible-content">
@@ -343,7 +346,111 @@
 
         analyzeNewButton.addEventListener('click', analyzeNewUrl);
 
+        // PDF Download Logic
+        downloadPdfButton.addEventListener('click', async () => {
+            const url = analyzedUrlDisplay.textContent; // Get the URL that was analyzed
+            if (!url || url === 'Loading URL...' || reportContainer.innerHTML.trim() === '') {
+                pdfMessage.textContent = 'Please analyze a URL and wait for the report to generate before downloading PDF.';
+                pdfMessage.classList.remove('hidden');
+                pdfMessage.style.color = 'orange';
+                return;
+            }
+
+            pdfMessage.textContent = 'Generating PDF... Please wait.';
+            pdfMessage.classList.remove('hidden');
+            pdfMessage.style.color = 'gray';
+            downloadPdfButton.disabled = true;
+
+            try {
+                // Get the hostname without https:// and www.
+                let filename = new URL(url).hostname;
+                if (filename.startsWith('www.')) {
+                    filename = filename.substring(4);
+                }
+                filename = `seo-report-${filename}.pdf`;
+
+                // Options for html2pdf
+                const pdfOptions = {
+                    margin: 10,
+                    filename: filename,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, logging: false, dpi: 192, letterRendering: true }, // Higher scale for better quality
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                // Select the entire dashboard section to be converted to PDF
+                const dashboardSection = document.getElementById('dashboard-section'); // Get reference to the dashboard section
+                const element = dashboardSection.cloneNode(true); // Clone the dashboard section
+
+                // Ensure the loading indicator is hidden in the PDF if it's still present in the cloned element
+                const loadingIndicatorInClonedElement = element.querySelector('#loading-indicator');
+                if (loadingIndicatorInClonedElement) {
+                    loadingIndicatorInClonedElement.classList.add('hidden');
+                }
+
+                // Ensure the report container is visible in the PDF
+                const reportContainerInClonedElement = element.querySelector('#report');
+                if (reportContainerInClonedElement) {
+                    reportContainerInClonedElement.classList.remove('hidden');
+                }
+
+                // Hide the buttons container in the cloned element for PDF
+                const buttonsContainerInClonedElement = element.querySelector('.flex.flex-col.sm\\:flex-row.space-y-2.sm\\:space-y-0.sm\\:space-x-2.mt-4');
+                if (buttonsContainerInClonedElement) {
+                    buttonsContainerInClonedElement.classList.add('hidden');
+                }
+
+                // Hide the PDF generation message in the cloned element for PDF
+                const pdfMessageInClonedElement = element.querySelector('#pdfMessage');
+                if (pdfMessageInClonedElement) {
+                    pdfMessageInClonedElement.classList.add('hidden');
+                }
+
+                // Hide the header of each collapsible section within the cloned element
+                // to prevent the collapse arrows from appearing on every page if expanded
+                element.querySelectorAll('.collapsible-header svg').forEach(svg => {
+                    svg.style.display = 'none'; // Hide the collapse arrow
+                });
+
+                // Ensure all collapsible content is expanded for the PDF
+                element.querySelectorAll('.collapsible-content').forEach(content => {
+                    content.classList.add('expanded');
+                    content.style.maxHeight = 'fit-content'; // Override max-height for PDF
+                    content.style.overflow = 'visible'; // Ensure content isn't cut off
+                });
+
+                // Apply page breaks for each major section in the PDF
+                const majorSections = element.querySelectorAll('.border.rounded-lg.shadow-sm.bg-white');
+                majorSections.forEach((section, index) => {
+                    // Apply page break to all sections except the very first one
+                    if (index > 0) {
+                        section.style.pageBreakBefore = 'always';
+                    }
+                });
+
+                await html2pdf().from(element).set(pdfOptions).save();
+
+                pdfMessage.textContent = 'PDF report generated and download started!';
+                pdfMessage.style.color = 'green';
+
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                pdfMessage.textContent = `Failed to generate PDF: ${error.message}.`;
+                pdfMessage.style.color = 'red';
+            } finally {
+                downloadPdfButton.disabled = false;
+                // Hide message after a few seconds
+                setTimeout(() => {
+                    pdfMessage.classList.add('hidden');
+                }, 5000);
+            }
+        });
+
+
         document.addEventListener('DOMContentLoaded', () => {
+            // Update copyright year
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+
             const params = new URLSearchParams(window.location.search);
             const url = params.get("url");
 
@@ -358,7 +465,7 @@
             analyzedUrlDisplay.textContent = url; // Display URL immediately
             loadingMessage.textContent = 'Starting analysis...'; // Initial loading message
 
-            // Initialize EventSource
+            // Initialize EventSource for SSE, pointing to the /api/analyze route
             const eventSource = new EventSource(`/analyze?url=${encodeURIComponent(url)}`);
 
             eventSource.onopen = () => {
@@ -372,8 +479,11 @@
                 loadingMessage.textContent = 'Head section analysis complete. Running body checks...';
                 allResults = allResults.concat(data.results);
                 data.results.forEach(item => {
-                    totalChecks++;
-                    if (item.pass) passedChecks++;
+                    // Only count items that have a 'pass' status for overall score
+                    if (item.pass !== undefined) {
+                        totalChecks++;
+                        if (item.pass) passedChecks++;
+                    }
                 });
                 renderResults(allResults); // Re-render with updated results
                 updateOverallScore();
@@ -385,8 +495,11 @@
                 loadingMessage.textContent = 'Body section analysis complete. Finalizing report...';
                 allResults = allResults.concat(data.results);
                 data.results.forEach(item => {
-                    totalChecks++;
-                    if (item.pass) passedChecks++;
+                     // Only count items that have a 'pass' status for overall score
+                    if (item.pass !== undefined) {
+                        totalChecks++;
+                        if (item.pass) passedChecks++;
+                    }
                 });
                 renderResults(allResults); // Re-render with updated results
                 updateOverallScore();
