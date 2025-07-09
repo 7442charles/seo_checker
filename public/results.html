@@ -117,13 +117,36 @@
 <body class="bg-gray-100 font-sans flex flex-col min-h-screen">
     <nav class="bg-white shadow-sm py-4 px-6 md:px-8 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <a href="/" class="text-2xl font-bold text-blue-600">SEO<span class="text-gray-800">Pro</span></a>
+            <a href="/" class="flex items-center space-x-2">
+                <img src="Assets/images/seo_pro.png" alt="SEOPro Logo" class="h-12 w-auto">
+                <!-- <span class="text-2xl font-bold text-blue-600">SEO<span class="text-gray-800">Pro</span></span> -->
+            </a>
             <div class="hidden md:flex space-x-8">
-                <a href="/#hero" class="text-gray-600 hover:text-blue-600 font-medium transition">Home</a>
-                <a href="/#features" class="text-gray-600 hover:text-blue-600 font-medium transition">Features</a>
-                <a href="/#pricing" class="text-gray-600 hover:text-blue-600 font-medium transition">Pricing</a>
-                <a href="/#footer" class="text-gray-600 hover:text-blue-600 font-medium transition">Contact</a>
+                <a href="#hero" class="text-gray-600 hover:text-blue-600 font-medium transition">Home</a>
+                <a href="#features" class="text-gray-600 hover:text-blue-600 font-medium transition">Features</a>
+                <a href="#footer" class="text-gray-600 hover:text-blue-600 font-medium transition">Contact</a>
             </div>
+            <div class="md:hidden">
+                <button id="mobile-menu-button" class="text-gray-600 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div id="mobile-menu" class="fixed inset-y-0 right-0 w-64 bg-white z-50 p-6 shadow-lg transform translate-x-full md:hidden">
+            <div class="flex justify-end mb-8">
+                <button id="close-mobile-menu" class="text-gray-600 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <nav class="flex flex-col space-y-4">
+                <a href="#hero" class="block text-gray-800 hover:text-blue-600 font-medium text-lg py-2" onclick="toggleMobileMenu()">Home</a>
+                <a href="#features" class="block text-gray-800 hover:text-blue-600 font-medium text-lg py-2" onclick="toggleMobileMenu()">Features</a>
+                <a href="#footer" class="block text-gray-800 hover:text-blue-600 font-medium text-lg py-2" onclick="toggleMobileMenu()">Contact</a>
+            </nav>
         </div>
     </nav>
 
@@ -171,31 +194,43 @@
     <footer id="footer" class="bg-gray-800 text-white py-10 mt-auto">
         <div class="container mx-auto px-6 max-w-7xl grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-                <h3 class="text-xl font-bold mb-4 text-blue-400">SEO<span class="text-white">Pro</span></h3>
+                <a href="/" class="flex items-center space-x-2 mb-4">
+                    <img src="Assets/images/seo_pro_1.png" alt="SEOPro Logo" class="h-12 w-auto">
+                    <!-- <span class="text-xl font-bold text-blue-400">SEO<span class="text-white">Pro</span></span> -->
+                </a>
                 <p class="text-gray-400 text-sm">Empowering your website to rank higher and attract more organic traffic.</p>
             </div>
             <div>
                 <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
                 <ul class="space-y-2">
-                    <li><a href="/#hero" class="text-gray-400 hover:text-white transition">Home</a></li>
-                    <li><a href="/#features" class="text-gray-400 hover:text-white transition">Features</a></li>
-                    <li><a href="/#pricing" class="text-gray-400 hover:text-white transition">Pricing</a></li>
+                    <li><a href="#hero" class="text-gray-400 hover:text-white transition">Home</a></li>
+                    <li><a href="#features" class="text-gray-400 hover:text-white transition">Features</a></li>
                     <li><a href="#" class="text-gray-400 hover:text-white transition">Privacy Policy</a></li>
                     <li><a href="#" class="text-gray-400 hover:text-white transition">Terms of Service</a></li>
                 </ul>
             </div>
             <div>
                 <h3 class="text-lg font-semibold mb-4">Connect With Us</h3>
-                <p class="text-gray-400">Email: info@seopro.com (placeholder)</p>
+                <p class="text-gray-400">Email: info@ckn.co.ke</p>
                 <div class="flex space-x-4 mt-3">
-                    <a href="#" class="text-gray-400 hover:text-white transition"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33V22C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" /></svg></a>
-                    <a href="#" class="text-gray-400 hover:text-white transition"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.297 18.297c-1.42.062-2.529-.39-3.267-1.128-.737-.738-1.19-1.847-1.128-3.267.062-1.42.39-2.529 1.128-3.267.738-.737 1.847-1.19 3.267-1.128 1.42-.062 2.529.39 3.267 1.128.737.738 1.19 1.847 1.128 3.267-.062 1.42-.39 2.529-1.128 3.267-.738.737-1.847 1.19-3.267 1.128zm0 2.5c1.785 0 3.245-.63 4.415-1.8c1.17-1.17 1.8-2.63 1.8-4.415 0-1.785-.63-3.245-1.8-4.415-1.17-1.17-2.63-1.8-4.415-1.8-1.785 0-3.245.63-4.415 1.8-1.17 1.17-1.8 2.63-1.8 4.415 0 1.785.63 3.245 1.8 4.415 1.17 1.17 2.63 1.8 4.415 1.8zM17.5 7.25c.69 0 1.25-.56 1.25-1.25S18.19 4.75 17.5 4.75 16.25 5.31 16.25 6s.56 1.25 1.25 1.25zM22 12c0-2.485-.895-4.75-2.63-6.4C17.75 3.515 15.485 2 13 2H11C8.515 2 6.25 3.515 4.5 5.6C2.75 7.25 2 9.515 2 12c0 2.485.895 4.75 2.63 6.4C6.25 20.485 8.515 22 11 22h2c2.485 0 4.75-1.515 6.4-3.5C21.105 16.75 22 14.485 22 12z"></path></svg></a>
+                    <a href="#" class="text-gray-400 hover:text-white transition">
+                        <img src="Assets/images/facebook_svg.svg" class="h-6 w-6" alt="Facebook" srcset="">
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition">
+                        <img src="Assets/images/whatsapp_svg.svg" class="h-6 w-6" alt="WhatsApp" srcset="">
+                    </a>
                 </div>
             </div>
         </div>
         <div class="border-t border-gray-700 mt-8 pt-6 text-center text-gray-500 text-sm">
             &copy; <span id="current-year"></span> SEOPro. All rights reserved.
         </div>
+        
+        <script>
+            // Get the current year
+            const currentYear = new Date().getFullYear();
+            document.getElementById('current-year').textContent = currentYear;
+        </script>
     </footer>
 
     <script>
