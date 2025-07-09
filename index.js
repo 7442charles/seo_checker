@@ -3,11 +3,11 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import fetch from 'node-fetch'; // Make sure to install node-fetch: npm install node-fetch
+import fetch from 'node-fetch';
 
 // Import your custom check modules
-import performHeadChecks from './analysis/headChecks.js'; // Ensure this path is correct
-import performBodyChecks from './analysis/bodyChecks.js'; // Ensure this path is correct
+import performHeadChecks from './analysis/headChecks.js';
+import performBodyChecks from './analysis/bodyChecks.js';
 
 // Convert __dirname for ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -28,20 +28,17 @@ const clients = new Set();
 app.get('/analyze', async (req, res) => {
     const url = req.query.url;
 
-    // Set up SSE headers
     res.writeHead(200, {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
     });
 
-    // Function to send data as an SSE event
     const sendEvent = (eventName, data) => {
         res.write(`event: ${eventName}\n`);
         res.write(`data: ${JSON.stringify(data)}\n\n`);
     };
 
-    // Add this client to the set of connected clients
     clients.add(res);
 
     req.on('close', () => {
@@ -51,31 +48,51 @@ app.get('/analyze', async (req, res) => {
 
     if (!url) {
         console.error('Missing URL parameter in /analyze request.');
-        sendEvent('analysis_error', { message: 'URL parameter is missing. Please provide a URL to analyze.' });
-        return res.end(); // End the connection if URL is missing
+        sendEvent('analysis_error', {
+            type: 'missing_url',
+            message: 'Please provide a website address to analyze.'
+        });
+        return res.end();
     }
 
     try {
         console.log(`[Server] Attempting to fetch URL: ${url}`);
-        // 1. Fetch the HTML content once
-        const response = await fetch(url, { timeout: 30000 }); // 30-second timeout
+        const response = await fetch(url, { timeout: 30000 });
         console.log(`[Server] Fetch response status for ${url}: ${response.status}`);
 
         if (!response.ok) {
-            const errorText = await response.text().catch(() => 'No response body available'); // Try to get text, handle if not available
-            const errorMessage = `Failed to fetch URL (Status: ${response.status}). The target website might be blocking the request or is unreachable. Response body preview: ${errorText.substring(0, 200)}`;
-            console.error(`[Server] ${errorMessage}`);
-            sendEvent('analysis_error', { message: errorMessage });
-            return res.end(); // End the connection on fetch failure
+            const errorText = await response.text().catch(() => 'No response body available');
+
+            const technicalErrorMessage = `Failed to fetch URL (Status: ${response.status}). The target website might be blocking the request or is unreachable. Response body preview: ${errorText.substring(0, 200)}`;
+            console.error(`[Server] ${technicalErrorMessage}`);
+
+            let userFriendlyMessageType = 'generic_fetch_error';
+            let userFriendlyMessage = `We couldn't analyze the website. It might be down or blocking our tool.`;
+
+            if (response.status === 403) {
+                userFriendlyMessageType = 'blocked_error';
+                userFriendlyMessage = `The website blocked our analysis. Please try another URL.`;
+            } else if (response.status === 404) {
+                userFriendlyMessageType = 'not_found';
+                userFriendlyMessage = `The website page was not found. Please check the URL.`;
+            } else if (response.status >= 500 && response.status < 600) {
+                userFriendlyMessageType = 'server_error';
+                userFriendlyMessage = `The website's server encountered an error. Please try again later.`;
+            }
+
+            sendEvent('analysis_error', {
+                type: userFriendlyMessageType,
+                message: userFriendlyMessage,
+                url: url // Send the URL separately if needed for display
+            });
+            return res.end();
         }
 
         const htmlContent = await response.text();
         console.log(`[Server] Successfully fetched HTML for ${url}. Starting analysis...`);
 
-        // 2. Run checks simultaneously
         const checkPromises = [];
 
-        // Head checks
         checkPromises.push(
             (async () => {
                 const headResults = performHeadChecks(htmlContent);
@@ -85,7 +102,6 @@ app.get('/analyze', async (req, res) => {
             })()
         );
 
-        // Body checks
         checkPromises.push(
             (async () => {
                 const bodyResults = performBodyChecks(htmlContent);
@@ -95,28 +111,38 @@ app.get('/analyze', async (req, res) => {
             })()
         );
 
-        // Wait for all checks to complete
         const allResults = await Promise.all(checkPromises);
-
-        // Flatten all results into a single array
         const combinedResults = allResults.flat();
 
-        // Send a final event indicating completion and overall data
         sendEvent('analysis_complete', { message: 'All analysis complete!', totalResults: combinedResults.length });
         console.log(`[Server] Analysis complete and final event sent for ${url}.`);
 
     } catch (err) {
-        // Catch any errors that occur during fetch or analysis processing
         console.error(`[Server] Critical analysis error for URL: ${url}`, err.message, err.stack);
-        sendEvent('analysis_error', { message: `Server-side error during analysis: ${err.message}. Please try again with a valid and accessible URL.` });
+
+        let userFriendlyMessageType = 'network_error';
+        let userFriendlyMessage = `Something went wrong connecting to the website. Check your internet or the URL.`;
+
+        if (err.name === 'AbortError' || err.message.includes('timeout')) {
+            userFriendlyMessageType = 'timeout_error';
+            userFriendlyMessage = `The website took too long to respond. Please try again later.`;
+        } else if (err.message.includes('getaddrinfo ENOTFOUND') || err.message.includes('EAI_AGAIN')) {
+            userFriendlyMessageType = 'dns_error';
+            userFriendlyMessage = `Couldn't find the website's address. Check for typos in the URL.`;
+        }
+
+        sendEvent('analysis_error', {
+            type: userFriendlyMessageType,
+            message: userFriendlyMessage,
+            url: url
+        });
     } finally {
-        // Ensure the SSE connection is always closed
         res.end();
-        clients.delete(res); // Ensure client is removed from the set
+        clients.delete(res);
         console.log(`[Server] SSE connection closed for ${url}.`);
     }
 });
-// Serve results.html when accessed directly or redirected
+
 app.get('/results.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'results.html'));
 });

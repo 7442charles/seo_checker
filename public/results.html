@@ -11,18 +11,15 @@
     <meta property="og:url" content="https://seopro.ckn.co.ke/">
     <meta property="og:title" content="SEOPro — Powerful SEO Checker Tool">
     <meta property="og:description" content="Analyze your site's SEO, speed, and mobile usability with SEOPro. Fast, accurate, and free.">
-    <meta property="og:image" content="https://seopro.ckn.co.ke/assets/images/logo_var_one.jpg">
+    <meta property="og:image" content="https://seopro.ckn.co.ke/assets/og-image.jpg">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://seopro.ckn.co.ke/">
     <meta name="twitter:title" content="SEOPro — Powerful SEO Checker Tool">
     <meta name="twitter:description" content="Audit your site's SEO, speed, and mobile usability with SEOPro. Fast, accurate, and free.">
-    <meta name="twitter:image" content="https://seopro.ckn.co.ke/assets/images/logo_var_one.jpg">
+    <meta name="twitter:image" content="https://seopro.ckn.co.ke/assets/og-image.jpg">
 
-    <link rel="apple-touch-icon" sizes="180x180" href="Assets/images/favicon_io/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="Assets/images/favicon_io/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="Assets/images/favicon_io/favicon-16x16.png">
-    <link rel="manifest" href="Assets/images/favicon_io/site.webmanifest">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
 
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -156,9 +153,9 @@
                             class="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition text-sm">
                             Download PDF Report
                         </button>
-                        </div>
-                    <p id="pdfMessage" class="text-gray-600 text-sm mt-2 hidden"></p>
                     </div>
+                    <p id="pdfMessage" class="text-gray-600 text-sm mt-2 hidden"></p>
+                </div>
             </div>
 
             <div id="loading-indicator" class="text-center py-10">
@@ -217,7 +214,6 @@
         const overallStatusBadge = document.getElementById('overallStatusBadge');
 
         // Remove Lighthouse specific elements (if they exist from previous versions)
-        // Ensure these elements are actually removed from the HTML if you don't use them
         const lighthousePerformanceScore = document.getElementById('lighthousePerformanceScore');
         const lighthouseAccessibilityScore = document.getElementById('lighthouseAccessibilityScore');
         const lighthouseBestPracticesScore = document.getElementById('lighthouseBestPracticesScore');
@@ -519,8 +515,11 @@
 
             eventSource.addEventListener('analysis_error', (event) => {
                 const data = JSON.parse(event.data);
-                console.error('Analysis error from server:', data.message);
-                loadingMessage.textContent = `Error: ${data.message}`;
+                console.error('Analysis error from server:', data.message, data.type, data.url); // Log all data for debugging
+                
+                // Display the user-friendly message from the server
+                loadingMessage.textContent = data.message; 
+                
                 loadingIndicator.classList.remove('hidden'); // Keep error message visible
                 reportContainer.classList.add('hidden'); // Ensure report content is hidden
                 eventSource.close(); // Close the SSE connection on error
@@ -528,7 +527,7 @@
 
             eventSource.onerror = (error) => {
                 console.error('SSE Error:', error);
-                loadingMessage.textContent = 'Connection error during analysis. Please try again.';
+                loadingMessage.textContent = 'Connection lost. Please check your internet and try again.'; // Generic connection error
                 loadingIndicator.classList.remove('hidden');
                 reportContainer.classList.add('hidden');
                 eventSource.close();
