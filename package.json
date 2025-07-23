@@ -10,7 +10,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "pm2 index.js",
+    "start": "pm2 start index.js --name seo-checker",
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
