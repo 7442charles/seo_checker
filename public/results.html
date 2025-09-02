@@ -119,8 +119,7 @@
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <a href="/" class="flex items-center space-x-2">
                 <img src="Assets/images/seo_pro.png" alt="SEOPro Logo" class="h-12 w-auto">
-                <!-- <span class="text-2xl font-bold text-blue-600">SEO<span class="text-gray-800">Pro</span></span> -->
-            </a>
+                </a>
             <div class="hidden md:flex space-x-8">
                 <a href="#hero" class="text-gray-600 hover:text-blue-600 font-medium transition">Home</a>
                 <a href="#features" class="text-gray-600 hover:text-blue-600 font-medium transition">Features</a>
@@ -196,8 +195,7 @@
             <div>
                 <a href="/" class="flex items-center space-x-2 mb-4">
                     <img src="Assets/images/seo_pro_1.png" alt="SEOPro Logo" class="h-12 w-auto">
-                    <!-- <span class="text-xl font-bold text-blue-400">SEO<span class="text-white">Pro</span></span> -->
-                </a>
+                    </a>
                 <p class="text-gray-400 text-sm">Empowering your website to rank higher and attract more organic traffic.</p>
             </div>
             <div>
@@ -405,16 +403,28 @@
 
                 // Options for html2pdf
                 const pdfOptions = {
-                    margin: 10,
+                    margin: [20, 10, 20, 10], // top, left, bottom, right
                     filename: filename,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, logging: false, dpi: 192, letterRendering: true }, // Higher scale for better quality
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    image: {
+                        type: 'jpeg',
+                        quality: 0.98
+                    },
+                    html2canvas: {
+                        scale: 2,
+                        logging: false,
+                        dpi: 192,
+                        letterRendering: true
+                    },
+                    jsPDF: {
+                        unit: 'mm',
+                        format: 'a4',
+                        orientation: 'portrait'
+                    }
                 };
 
                 // Select the entire dashboard section to be converted to PDF
-                const dashboardSection = document.getElementById('dashboard-section'); // Get reference to the dashboard section
-                const element = dashboardSection.cloneNode(true); // Clone the dashboard section
+                const dashboardSection = document.getElementById('dashboard-section');
+                const element = dashboardSection.cloneNode(true);
 
                 // Ensure the loading indicator is hidden in the PDF if it's still present in the cloned element
                 const loadingIndicatorInClonedElement = element.querySelector('#loading-indicator');
@@ -453,16 +463,31 @@
                     content.style.overflow = 'visible'; // Ensure content isn't cut off
                 });
 
-                // Apply page breaks for each major section in the PDF
+                // Remove the page break for each major section
                 const majorSections = element.querySelectorAll('.border.rounded-lg.shadow-sm.bg-white');
                 majorSections.forEach((section, index) => {
-                    // Apply page break to all sections except the very first one
-                    if (index > 0) {
-                        section.style.pageBreakBefore = 'always';
-                    }
+                    section.style.pageBreakBefore = 'auto';
                 });
+                
+                await html2pdf().from(element).set(pdfOptions).toPdf().get('pdf').then(function (pdf) {
+                    const totalPages = pdf.internal.getNumberOfPages();
+                    const urlText = "https://seopro.ckn.co.ke";
 
-                await html2pdf().from(element).set(pdfOptions).save();
+                    for (let i = 1; i <= totalPages; i++) {
+                        pdf.setPage(i);
+                        
+                        // Add the URL footer
+                        pdf.setFontSize(10);
+                        pdf.setTextColor(100);
+                        pdf.text(urlText, 10, pdf.internal.pageSize.getHeight() - 10);
+
+                        // Add the page number
+                        const pageNumberText = 'Page ' + i + ' of ' + totalPages;
+                        const textWidth = pdf.getStringUnitWidth(pageNumberText) * pdf.internal.getFontSize();
+                        const xPosition = pdf.internal.pageSize.getWidth() - textWidth - 10;
+                        pdf.text(pageNumberText, xPosition, pdf.internal.pageSize.getHeight() - 10);
+                    }
+                }).save();
 
                 pdfMessage.textContent = 'PDF report generated and download started!';
                 pdfMessage.style.color = 'green';
